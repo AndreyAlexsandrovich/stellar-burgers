@@ -3,30 +3,23 @@ import { useMemo, useState, useRef, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
 import {
-  getIngredients,
   getIngredientsSelector,
   getIsLoadingSelector,
   getErrorSelector,
 } from '../../services/burgerSlice';
-import { useDispatch, useSelector } from '../../services/store';
+import { useSelector } from '../../services/store';
 
 import type { TIngredient, TTabMode } from '@utils-types';
 
 export const BurgerIngredients = (): React.JSX.Element => {
-  const dispatch = useDispatch();
-
-  const ingredients = useSelector(getIngredientsSelector);
-  const isLoading = useSelector(getIsLoadingSelector);
-  const error = useSelector(getErrorSelector);
-
   const [currentTab, setCurrentTab] = useState<TTabMode>('bun');
   const titleBunRef = useRef<HTMLHeadingElement>(null);
   const titleMainRef = useRef<HTMLHeadingElement>(null);
   const titleSaucesRef = useRef<HTMLHeadingElement>(null);
 
-  useEffect(() => {
-    void dispatch(getIngredients());
-  }, [dispatch]);
+  const ingredients = useSelector(getIngredientsSelector);
+  const isIngredientsLoading = useSelector(getIsLoadingSelector);
+  const ingredientsError = useSelector(getErrorSelector);
 
   const [bunsRef, inViewBuns] = useInView({
     threshold: 0,
@@ -72,8 +65,8 @@ export const BurgerIngredients = (): React.JSX.Element => {
     [ingredients]
   );
 
-  if (isLoading) return <p>Загрузка ингредиентов...</p>;
-  if (error) return <p>Ошибка: {error}</p>;
+  if (isIngredientsLoading) return <p>Загрузка ингредиентов...</p>;
+  if (ingredientsError) return <p>Ошибка: {ingredientsError.message}</p>;
 
   return (
     <BurgerIngredientsUI
