@@ -5,13 +5,16 @@ import {
   nanoid,
 } from '@reduxjs/toolkit';
 
-import { orderBurgerApi } from '../utils/burger-api';
+import { orderBurgerApi, type TNewOrderResponse } from '../utils/burger-api';
 
-import type { TConstructorIngredient, TIngredient, TOrder } from '../utils/types';
+import type {
+  TConstructorIngredient,
+  TIngredient,
+  TOrder,
+  TConstructorState as TBaseConstructorState,
+} from '../utils/types';
 
-type TConstructorState = {
-  bun: TIngredient | null;
-  ingredients: TConstructorIngredient[];
+type TConstructorState = TBaseConstructorState & {
   orderRequest: boolean;
   orderModalData: TOrder | null;
 };
@@ -23,7 +26,7 @@ const initialState: TConstructorState = {
   ingredients: [],
 };
 
-export const orderBurger = createAsyncThunk(
+export const orderBurger = createAsyncThunk<TNewOrderResponse, string[]>(
   'constructor/order',
   async (ids: string[]) => {
     return orderBurgerApi(ids);
@@ -31,7 +34,7 @@ export const orderBurger = createAsyncThunk(
 );
 
 export const constructorSlice = createSlice({
-  name: 'constructor',
+  name: 'burgerConstructor',
   initialState,
   reducers: {
     addIngredient: {
@@ -106,4 +109,4 @@ export const {
   getOrderModalDataSelector,
 } = constructorSlice.selectors;
 
-export const constructorReducer = constructorSlice.reducer;
+export const burgerConstructor = constructorSlice.reducer;

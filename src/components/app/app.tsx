@@ -12,7 +12,7 @@ import {
 } from '@pages';
 import { ModalUI, Preloader } from '@ui';
 import { useEffect } from 'react';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 
 import {
   getIngredients,
@@ -21,6 +21,8 @@ import {
   getErrorSelector,
 } from '../../services/burgerSlice';
 import { useDispatch, useSelector } from '../../services/store';
+import { checkUserAuth } from '../../services/userSlice';
+import { ProtectedRoute } from '../protected-route/protected-route';
 
 import type { AppContentProps } from './type';
 
@@ -33,6 +35,10 @@ const App = (): React.JSX.Element => {
   const ingredients = useSelector(getIngredientsSelector);
   const isIngredientsLoading = useSelector(getIsLoadingSelector);
   const ingredientsError = useSelector(getErrorSelector);
+
+  useEffect(() => {
+    void dispatch(checkUserAuth());
+  }, [dispatch]);
 
   useEffect(() => {
     void dispatch(getIngredients());
@@ -82,20 +88,66 @@ const AppContent = ({
 };
 
 const RouteComponent = (): React.JSX.Element => {
+  const navigate = useNavigate();
+  const handleCloseModal = (): void => {
+    void navigate(-1);
+  };
   return (
     <Routes>
       <Route path="/" element={<ConstructorPage />} />
       <Route path="/feed" element={<Feed />} />
-      <Route path="/login" element={<Login />} />
-      <Route path="/register" element={<Register />} />
-      <Route path="/forgot-password" element={<ForgotPassword />} />
-      <Route path="/reset-password" element={<ResetPassword />} />
-      <Route path="/profile" element={<Profile />} />
-      <Route path="/profile/orders" element={<ProfileOrders />} />
+      <Route
+        path="/login"
+        element={
+          <ProtectedRoute onlyUnAuth>
+            <Login />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/register"
+        element={
+          <ProtectedRoute onlyUnAuth>
+            <Register />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/forgot-password"
+        element={
+          <ProtectedRoute onlyUnAuth>
+            <ForgotPassword />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/reset-password"
+        element={
+          <ProtectedRoute onlyUnAuth>
+            <ResetPassword />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile"
+        element={
+          <ProtectedRoute>
+            <Profile />
+          </ProtectedRoute>
+        }
+      />
+      <Route
+        path="/profile/orders"
+        element={
+          <ProtectedRoute>
+            <ProfileOrders />
+          </ProtectedRoute>
+        }
+      />
       <Route
         path="/feed/:number"
         element={
-          <ModalUI title="Информация о заказе">
+          <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
             <OrderInfo />
           </ModalUI>
         }
@@ -103,7 +155,7 @@ const RouteComponent = (): React.JSX.Element => {
       <Route
         path="/ingredients/:id"
         element={
-          <ModalUI title="Детали градиента">
+          <ModalUI title="Детали ингредиента" onClose={handleCloseModal}>
             <IngredientDetails />
           </ModalUI>
         }
@@ -111,9 +163,11 @@ const RouteComponent = (): React.JSX.Element => {
       <Route
         path="/profile/orders/:number"
         element={
-          <ModalUI title="Информация о заказе">
-            <OrderInfo />
-          </ModalUI>
+          <ProtectedRoute>
+            <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
+              <OrderInfo />
+            </ModalUI>
+          </ProtectedRoute>
         }
       />
       <Route path="*" element={<NotFound404 />} />
