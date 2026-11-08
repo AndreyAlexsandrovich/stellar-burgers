@@ -9,7 +9,7 @@ import {
   type TRegisterData,
   type TLoginData,
 } from '../utils/burger-api';
-import { setCookie, getCookie } from '../utils/cookie';
+import { setCookie } from '../utils/cookie';
 
 import type { TUser } from '../utils/types';
 
@@ -45,11 +45,18 @@ export const loginUser = createAsyncThunk('user/login', async (data: TLoginData)
 });
 
 export const checkUserAuth = createAsyncThunk('user/checkAuth', async () => {
-  if (!getCookie('accessToken')) {
+  const refreshToken = localStorage.getItem('refreshToken');
+  if (!refreshToken) {
     return null;
   }
-  const res = await getUserApi();
-  return res.user;
+
+  try {
+    const response = await getUserApi();
+    return response.user;
+  } catch (error) {
+    localStorage.removeItem('refreshToken');
+    throw error;
+  }
 });
 
 export const updateUser = createAsyncThunk(
@@ -61,9 +68,12 @@ export const updateUser = createAsyncThunk(
 );
 
 export const logoutUser = createAsyncThunk('user/logout', async () => {
-  await logoutApi();
-  localStorage.removeItem('refreshToken');
-  setCookie('accessToken', '');
+  try {
+    await logoutApi();
+  } finally {
+    localStorage.removeItem('refreshToken');
+    setCookie('accessToken', '', { express: new Date(0) });
+  }
 });
 
 export const userSlice = createSlice({
@@ -78,28 +88,65 @@ export const userSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
+
+      .addCase(registerUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(registerUser.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
+        state.isAuthChecked = true;
+      })
+      .addCase(registerUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? 'Ошибка регистрации';
+      })
+
+      .addCase(loginUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
       })
       .addCase(loginUser.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
+        state.isAuthChecked = true;
+      })
+      .addCase(loginUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? 'Ошибка входа';
+      })
+
+      .addCase(checkUserAuth.pending, (state) => {
+        state.isLoading = true;
       })
       .addCase(checkUserAuth.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
         state.isAuthChecked = true;
       })
       .addCase(checkUserAuth.rejected, (state) => {
+        state.isLoading = false;
         state.user = null;
         state.isAuthChecked = true;
       })
+
+      .addCase(updateUser.pending, (state) => {
+        state.isLoading = true;
+        state.error = null;
+      })
       .addCase(updateUser.fulfilled, (state, action) => {
+        state.isLoading = false;
         state.user = action.payload;
       })
+      .addCase(updateUser.rejected, (state, action) => {
+        state.isLoading = false;
+        state.error = action.error.message ?? 'Ошибка обновления профиля';
+      })
+
       .addCase(logoutUser.fulfilled, (state) => {
         state.user = null;
-      })
-      .addCase(updateUser.rejected, (state, action) => {
-        state.error = action.error.message ?? 'Ошибка обновления профиля';
+        state.isAuthChecked = true;
       });
   },
 });

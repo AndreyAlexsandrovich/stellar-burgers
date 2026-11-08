@@ -12,7 +12,7 @@ import {
 } from '@pages';
 import { ModalUI, Preloader } from '@ui';
 import { useEffect } from 'react';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
 
 import {
   getIngredients,
@@ -89,88 +89,108 @@ const AppContent = ({
 
 const RouteComponent = (): React.JSX.Element => {
   const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { background?: Location } | null;
+  const background = state?.background;
+
   const handleCloseModal = (): void => {
     void navigate(-1);
   };
   return (
-    <Routes>
-      <Route path="/" element={<ConstructorPage />} />
-      <Route path="/feed" element={<Feed />} />
-      <Route
-        path="/login"
-        element={
-          <ProtectedRoute onlyUnAuth>
-            <Login />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/register"
-        element={
-          <ProtectedRoute onlyUnAuth>
-            <Register />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/forgot-password"
-        element={
-          <ProtectedRoute onlyUnAuth>
-            <ForgotPassword />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/reset-password"
-        element={
-          <ProtectedRoute onlyUnAuth>
-            <ResetPassword />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile"
-        element={
-          <ProtectedRoute>
-            <Profile />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/profile/orders"
-        element={
-          <ProtectedRoute>
-            <ProfileOrders />
-          </ProtectedRoute>
-        }
-      />
-      <Route
-        path="/feed/:number"
-        element={
-          <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
-            <OrderInfo />
-          </ModalUI>
-        }
-      />
-      <Route
-        path="/ingredients/:id"
-        element={
-          <ModalUI title="Детали ингредиента" onClose={handleCloseModal}>
-            <IngredientDetails />
-          </ModalUI>
-        }
-      />
-      <Route
-        path="/profile/orders/:number"
-        element={
-          <ProtectedRoute>
-            <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
+    <>
+      <Routes location={background ?? location}>
+        <Route path="/" element={<ConstructorPage />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/orders"
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/feed/:number" element={<OrderInfo />} />
+        <Route path="/ingredients/:id" element={<IngredientDetails />} />
+        <Route
+          path="/profile/orders/:number"
+          element={
+            <ProtectedRoute>
               <OrderInfo />
-            </ModalUI>
-          </ProtectedRoute>
-        }
-      />
-      <Route path="*" element={<NotFound404 />} />
-    </Routes>
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound404 />} />
+      </Routes>
+      {background && (
+        <Routes>
+          <Route
+            path="/feed/:number"
+            element={
+              <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
+                <OrderInfo />
+              </ModalUI>
+            }
+          />
+          <Route
+            path="/ingredients/:id"
+            element={
+              <ModalUI title="Детали ингредиента" onClose={handleCloseModal}>
+                <IngredientDetails />
+              </ModalUI>
+            }
+          />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <ProtectedRoute>
+                <ModalUI title="информация о заказе" onClose={handleCloseModal}>
+                  <OrderInfo />
+                </ModalUI>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
+    </>
   );
 };
