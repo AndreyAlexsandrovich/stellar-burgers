@@ -2,6 +2,13 @@ import { BurgerIngredientsUI } from '@ui';
 import { useMemo, useState, useRef, useEffect } from 'react';
 import { useInView } from 'react-intersection-observer';
 
+import {
+  getIngredientsSelector,
+  getIsLoadingSelector,
+  getErrorSelector,
+} from '../../services/burgerSlice';
+import { useSelector } from '../../services/store';
+
 import type { TIngredient, TTabMode } from '@utils-types';
 
 export const BurgerIngredients = (): React.JSX.Element => {
@@ -9,8 +16,10 @@ export const BurgerIngredients = (): React.JSX.Element => {
   const titleBunRef = useRef<HTMLHeadingElement>(null);
   const titleMainRef = useRef<HTMLHeadingElement>(null);
   const titleSaucesRef = useRef<HTMLHeadingElement>(null);
-  // TODO: Взять ингредиенты из стора
-  const ingredients: TIngredient[] = [];
+
+  const ingredients = useSelector(getIngredientsSelector);
+  const isIngredientsLoading = useSelector(getIsLoadingSelector);
+  const ingredientsError = useSelector(getErrorSelector);
 
   const [bunsRef, inViewBuns] = useInView({
     threshold: 0,
@@ -55,6 +64,9 @@ export const BurgerIngredients = (): React.JSX.Element => {
     () => ingredients.filter((item: TIngredient) => item.type === 'sauce'),
     [ingredients]
   );
+
+  if (isIngredientsLoading) return <p>Загрузка ингредиентов...</p>;
+  if (ingredientsError) return <p>Ошибка: {ingredientsError.message}</p>;
 
   return (
     <BurgerIngredientsUI
