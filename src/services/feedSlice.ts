@@ -47,7 +47,8 @@ export const feedSlice = createSlice({
     getOrdersSelector: (state) => state.orders,
     getTotalSelector: (state) => state.total,
     getTotalTodaySelector: (state) => state.totalToday,
-    getOrderByNumberSelector: (state) => state.currentOrder,
+    getOrderByNumberSelector: (state, number: number) =>
+      state.orders.find((o) => o.number === number) ?? null,
     getFeedLoadingSelector: (state) => state.isLoading,
     getFeedErrorSelector: (state) => state.error,
     getUserOrdersSelector: (state) => state.userOrders,

@@ -166,7 +166,7 @@ const RouteComponent = (): React.JSX.Element => {
           <Route
             path="/feed/:number"
             element={
-              <ModalUI title="Информация о заказе" onClose={handleCloseModal}>
+              <ModalUI title="" onClose={handleCloseModal}>
                 <OrderInfo />
               </ModalUI>
             }
@@ -183,7 +183,7 @@ const RouteComponent = (): React.JSX.Element => {
             path="/profile/orders/:number"
             element={
               <ProtectedRoute>
-                <ModalUI title="информация о заказе" onClose={handleCloseModal}>
+                <ModalUI title="" onClose={handleCloseModal}>
                   <OrderInfo />
                 </ModalUI>
               </ProtectedRoute>

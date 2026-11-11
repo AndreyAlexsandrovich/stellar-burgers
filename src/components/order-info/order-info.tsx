@@ -18,12 +18,14 @@ export const OrderInfo = (): React.JSX.Element => {
   const { number } = useParams<{ number: string }>();
 
   const ingredients = useSelector(getIngredientsSelector);
-  const orderData = useSelector(getOrderByNumberSelector);
+  const orderData = useSelector((state) => {
+    return getOrderByNumberSelector(state, Number(number));
+  });
   const isLoading = useSelector(getFeedLoadingSelector);
   /* Готовим данные для отображения */
   useEffect(() => {
     if (!number) return;
-    if (orderData?.number === Number(number)) return;
+    if (orderData) return;
     void dispatch(getOrderByNumber(Number(number)));
   }, [dispatch, number, orderData?.number]);
 
@@ -34,8 +36,8 @@ export const OrderInfo = (): React.JSX.Element => {
 
     type TIngredientsWithCount = Record<string, TIngredient & { count: number }>;
 
-    const ingredientsInfo = orderData.ingredients.reduce(
-      (acc: TIngredientsWithCount, item) => {
+    const ingredientsInfo = orderData.ingredients.reduce<TIngredientsWithCount>(
+      (acc: TIngredientsWithCount, item: string) => {
         if (!acc[item]) {
           const ingredient = ingredients.find((ing) => ing._id === item);
           if (ingredient) {
@@ -53,10 +55,9 @@ export const OrderInfo = (): React.JSX.Element => {
       {}
     );
 
-    const total = Object.values(ingredientsInfo).reduce(
-      (acc, item) => acc + item.price * item.count,
-      0
-    );
+    const total = (
+      Object.values(ingredientsInfo) as (TIngredient & { count: number })[]
+    ).reduce((acc: number, item) => acc + item.price * item.count, 0);
 
     return {
       ...orderData,
