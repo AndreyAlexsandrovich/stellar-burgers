@@ -22,6 +22,7 @@ import {
 } from '../../services/burgerSlice';
 import { useDispatch, useSelector } from '../../services/store';
 import { checkUserAuth } from '../../services/userSlice';
+import { Modal } from '../modal';
 import { ProtectedRoute } from '../protected-route/protected-route';
 
 import type { AppContentProps } from './type';
@@ -166,9 +167,9 @@ const RouteComponent = (): React.JSX.Element => {
           <Route
             path="/feed/:number"
             element={
-              <ModalUI title="" onClose={handleCloseModal}>
+              <Modal title="" onClose={handleCloseModal}>
                 <OrderInfo />
-              </ModalUI>
+              </Modal>
             }
           />
           <Route
@@ -183,9 +184,9 @@ const RouteComponent = (): React.JSX.Element => {
             path="/profile/orders/:number"
             element={
               <ProtectedRoute>
-                <ModalUI title="" onClose={handleCloseModal}>
+                <Modal title="" onClose={handleCloseModal}>
                   <OrderInfo />
-                </ModalUI>
+                </Modal>
               </ProtectedRoute>
             }
           />
