@@ -19,7 +19,7 @@ type TConstructorState = TBaseConstructorState & {
   orderModalData: TOrder | null;
 };
 
-const initialState: TConstructorState = {
+export const initialState: TConstructorState = {
   bun: null,
   orderRequest: false,
   orderModalData: null,
