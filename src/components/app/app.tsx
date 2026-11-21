@@ -1,19 +1,49 @@
-import { AppHeader } from '@components';
-import { ConstructorPage } from '@pages';
-import { Preloader } from '@ui';
-import { Routes, Route } from 'react-router-dom';
+import { AppHeader, OrderInfo, IngredientDetails } from '@components';
+import {
+  ConstructorPage,
+  Feed,
+  Login,
+  Register,
+  ForgotPassword,
+  ResetPassword,
+  Profile,
+  ProfileOrders,
+  NotFound404,
+} from '@pages';
+import { ModalUI, Preloader } from '@ui';
+import { useEffect } from 'react';
+import { Routes, Route, useNavigate, useLocation } from 'react-router-dom';
+
+import {
+  getIngredients,
+  getIngredientsSelector,
+  getIsLoadingSelector,
+  getErrorSelector,
+} from '../../services/burgerSlice';
+import { useDispatch, useSelector } from '../../services/store';
+import { checkUserAuth } from '../../services/userSlice';
+import { Modal } from '../modal';
+import { ProtectedRoute } from '../protected-route/protected-route';
 
 import type { AppContentProps } from './type';
-import type { TIngredient } from '@utils-types';
 
 import '../../index.css';
 
 import styles from './app.module.css';
 
 const App = (): React.JSX.Element => {
-  const ingredients: TIngredient[] = [];
-  const isIngredientsLoading = false;
-  const ingredientsError = null;
+  const dispatch = useDispatch();
+  const ingredients = useSelector(getIngredientsSelector);
+  const isIngredientsLoading = useSelector(getIsLoadingSelector);
+  const ingredientsError = useSelector(getErrorSelector);
+
+  useEffect(() => {
+    void dispatch(checkUserAuth());
+  }, [dispatch]);
+
+  useEffect(() => {
+    void dispatch(getIngredients());
+  }, [dispatch]);
 
   return (
     <div className={styles.app}>
@@ -59,11 +89,109 @@ const AppContent = ({
 };
 
 const RouteComponent = (): React.JSX.Element => {
+  const navigate = useNavigate();
+  const location = useLocation();
+  const state = location.state as { background?: Location } | null;
+  const background = state?.background;
+
+  const handleCloseModal = (): void => {
+    void navigate(-1);
+  };
   return (
     <>
-      <Routes>
+      <Routes location={background ?? location}>
         <Route path="/" element={<ConstructorPage />} />
+        <Route path="/feed" element={<Feed />} />
+        <Route
+          path="/login"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Login />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/register"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <Register />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/forgot-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ForgotPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/reset-password"
+          element={
+            <ProtectedRoute onlyUnAuth>
+              <ResetPassword />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile"
+          element={
+            <ProtectedRoute>
+              <Profile />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/profile/orders"
+          element={
+            <ProtectedRoute>
+              <ProfileOrders />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="/feed/:number" element={<OrderInfo />} />
+        <Route path="/ingredients/:id" element={<IngredientDetails />} />
+        <Route
+          path="/profile/orders/:number"
+          element={
+            <ProtectedRoute>
+              <OrderInfo />
+            </ProtectedRoute>
+          }
+        />
+        <Route path="*" element={<NotFound404 />} />
       </Routes>
+      {background && (
+        <Routes>
+          <Route
+            path="/feed/:number"
+            element={
+              <Modal title="" onClose={handleCloseModal}>
+                <OrderInfo />
+              </Modal>
+            }
+          />
+          <Route
+            path="/ingredients/:id"
+            element={
+              <ModalUI title="Детали ингредиента" onClose={handleCloseModal}>
+                <IngredientDetails />
+              </ModalUI>
+            }
+          />
+          <Route
+            path="/profile/orders/:number"
+            element={
+              <ProtectedRoute>
+                <Modal title="" onClose={handleCloseModal}>
+                  <OrderInfo />
+                </Modal>
+              </ProtectedRoute>
+            }
+          />
+        </Routes>
+      )}
     </>
   );
 };
