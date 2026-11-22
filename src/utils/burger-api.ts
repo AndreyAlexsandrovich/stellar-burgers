@@ -113,7 +113,7 @@ export const getOrdersApi = (): Promise<TOrder[]> =>
     return Promise.reject(toApiError(data));
   });
 
-export type TNewOrderResponse = TServerResponse<{
+type TNewOrderResponse = TServerResponse<{
   order: TOrder;
   name: string;
 }>;

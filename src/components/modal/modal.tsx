@@ -1,7 +1,6 @@
 import { ModalUI } from '@ui';
 import { memo, useEffect } from 'react';
 import ReactDOM from 'react-dom';
-import { useParams } from 'react-router-dom';
 
 import type { TModalProps } from './type';
 
@@ -12,8 +11,6 @@ export const Modal = memo(function Modal({
   onClose,
   children,
 }: TModalProps): React.JSX.Element {
-  const { number } = useParams<{ number?: string }>();
-  const modalTitle = number ? `#${String(number).padStart(6, '0')}` : title;
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent): void => {
       if (e.key === 'Escape') onClose();
@@ -26,7 +23,7 @@ export const Modal = memo(function Modal({
   }, [onClose]);
 
   return ReactDOM.createPortal(
-    <ModalUI title={modalTitle} onClose={onClose}>
+    <ModalUI title={title} onClose={onClose}>
       {children}
     </ModalUI>,
     modalRoot as HTMLDivElement
