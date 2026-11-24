@@ -9,7 +9,10 @@ import {
   moveIngredientsUp,
   moveIngredientsDown,
   burgerConstructor,
+  orderBurger,
 } from '../constructorSlice';
+
+import type { SerializedError } from '@reduxjs/toolkit';
 
 const bun = {
   _id: '6acd6b8163765e371c0bd9eb',
@@ -54,7 +57,7 @@ const sauce = {
 };
 
 describe('тест конструктора', () => {
-  test('добавляет  булку в ингредиент', () => {
+  test('добавление булки в конструктор', () => {
     const initialBurgerState = {
       ...initialState,
       ingredients: [...initialState.ingredients],
@@ -88,7 +91,7 @@ describe('тест конструктора', () => {
     expect(newState).toEqual(initialBurgerState);
   });
 
-  test('добавляет начинку  в ингредиент', () => {
+  test('добавление начинки в конструктор', () => {
     const initialBurgerState = {
       ...initialState,
       ingredients: [...initialState.ingredients],
@@ -110,7 +113,7 @@ describe('тест конструктора', () => {
     expect(initialBurgerState.ingredients).toHaveLength(0);
   });
 
-  test('добавляет соус  в ингредиент', () => {
+  test('добавление соуса в конструктор', () => {
     const initialBurgerState = {
       ...initialState,
       ingredients: [...initialState.ingredients],
@@ -189,6 +192,44 @@ describe('тест конструктора', () => {
 
     const newState = burgerConstructor(stateWithOrder, handleCloseOrderModal());
     expect(newState.orderModalData).toBeNull();
+  });
+
+  test('включает загрузку при orderBurger.pending', () => {
+    const action = { type: orderBurger.pending.type };
+    const newState = burgerConstructor(initialState, action);
+
+    expect(newState.orderRequest).toBe(true);
+  });
+
+  test('сохраняет номер заказа и очищает конструктор при orderBurger.fulfilled', () => {
+    const bunWithId = { ...bun, id: 'test-bun-id' };
+    const fillingWithId = { ...filling, id: 'test-filling-id' };
+
+    const stateWithBurger = {
+      ...initialState,
+      bun: bunWithId,
+      ingredients: [fillingWithId],
+    };
+
+    const mockBurgerResponse = {
+      success: true,
+      order: { number: '6acd6b8163765e371c0bd9eb' },
+    };
+    const action = { type: orderBurger.fulfilled.type, payload: mockBurgerResponse };
+    const newState = burgerConstructor(stateWithBurger, action);
+
+    expect(newState.orderRequest).toBe(false);
+    expect(newState.orderModalData).toEqual({ number: '6acd6b8163765e371c0bd9eb' });
+    expect(newState.bun).toBeNull();
+    expect(newState.ingredients).toHaveLength(0);
+  });
+
+  test('сохраняет ошибку при orderBurger.rejected', () => {
+    const mockError: SerializedError = { message: 'Ошибка оформления заказа' };
+    const action = { type: orderBurger.rejected.type, error: mockError };
+    const newState = burgerConstructor(initialState, action);
+
+    expect(newState.orderRequest).toBe(false);
   });
 
   test('перемещает ингредиент вверх', () => {

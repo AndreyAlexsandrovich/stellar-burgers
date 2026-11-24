@@ -51,19 +51,27 @@ test.describe('add ingredients to constructor works correctly', function () {
     });
 
     test('добавление булок в конструктор', async ({ page }) => { 
+        await expect(page.getByText('Выберите булки').first()).toBeVisible();
         await addIngredients(page, constructorName)
-
+        
         const constructor = page.locator('section').filter({ 
             has: page.getByRole('button', {name: 'Оформить заказ' })
         })
+        
+        await expect(page.getByText('Выберите булки')).toHaveCount(0);
+    
 
         await expect(constructor.getByText(`${constructorName} (верх)`)).toBeVisible();
         await expect(constructor.getByText(`${constructorName} (низ)`)).toBeVisible();
     });
 
     test('добавление булки и начинки одновременно', async ({page}) => { 
+         await expect(page.getByText('Выберите булки').first()).toBeVisible();
         await addIngredients(page, constructorName);
+         await expect(page.getByText('Выберите булки')).toHaveCount(0);
+         await expect(page.getByText('Выберите начинку')) .toBeVisible();
         await addIngredients(page, fillingName);
+        await expect(page.getByText('Выберите начинку')).toBeHidden();
 
           const constructor = page.locator('section').filter({ 
             has: page.getByRole('button', {name: 'Оформить заказ' })
@@ -74,7 +82,10 @@ test.describe('add ingredients to constructor works correctly', function () {
         await expect(constructor.getByText(fillingName)).toBeVisible();
     });
 
-    test('закрытия модального окна по крестику', async ({page}) => { 
+});
+
+test.describe("Тестирование функциональности модальных окон", function() { 
+ test('закрытия модального окна по крестику', async ({page}) => { 
         await openConstructor(page);
 
         await page.getByRole('link').filter({hasText:constructorName }).click();
@@ -108,8 +119,8 @@ test.describe('add ingredients to constructor works correctly', function () {
         const ingredientsModal = page.getByRole('dialog');
 
          await expect(ingredientsModal).toBeVisible();
-         await expect(ingredientsModal.getByRole('heading',  {name: 'Детали ингредиента'})).toBeVisible();
-         await expect(ingredientsModal.getByText('Калории, ккал')).toBeVisible();
+                  await expect(ingredientsModal.getByRole('heading',  {name: "Детали ингредиента"})).toBeVisible();
+         await expect(ingredientsModal.getByRole('heading',  {name: constructorName})).toBeVisible();
     });
 
     test('создания заказа, очистка конструктора, закрытия окно заказа', async ({page})  => { 
@@ -130,9 +141,17 @@ test.describe('add ingredients to constructor works correctly', function () {
 
             await addIngredients(page, constructorName);
             await addIngredients(page, fillingName);
-            await page.getByRole('button', {name: 'Оформить заказ'}).click();
 
             const orderModal = page.getByRole('dialog');
+            await expect(orderModal).toBeHidden();
+
+            const constructor = page.locator('section').filter({
+                has: page.getByRole('button', {name: 'Оформить заказ'}),
+            });
+            await expect(constructor.getByText(`${constructorName} (верх)`)).toBeVisible();
+            await expect(constructor.getByText(fillingName)).toBeVisible();
+
+            await page.getByRole('button', {name: 'Оформить заказ'}).click();
 
             await expect(orderModal).toBeVisible();
             await expect(orderModal.getByText(String(orderNumber))).toBeVisible();
@@ -142,14 +161,11 @@ test.describe('add ingredients to constructor works correctly', function () {
             expect(requestBody?.ingredients).toEqual([constructorId, filingId, constructorId]);
             expect(authorizationHeader).toBe('Bearer test-access-token');
 
-            const constructor = page.locator('section').filter({
-                has: page.getByRole('button', {name: 'оформить заказ'}),
-            })
             await expect(constructor.getByText('Выберите булки')).toHaveCount(2);
             await expect(constructor.getByText('Выберите начинку')).toBeVisible();
 
             await orderModal.getByRole('button', {name: 'Закрыть'}).click();
+             await expect(orderModal).toBeHidden();
 
-            await expect(orderModal).toBeHidden();
     });
-});
+})

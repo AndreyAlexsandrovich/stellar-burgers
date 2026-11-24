@@ -15,7 +15,7 @@ type TIngredientState = {
   error: SerializedError | null;
 };
 
-const initialState: TIngredientState = {
+export const initialState: TIngredientState = {
   burgers: [],
   isLoading: false,
   error: null,
